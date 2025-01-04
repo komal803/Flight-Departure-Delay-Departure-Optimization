@@ -75,7 +75,32 @@ The dataset for this project, sourced from Kaggle, comprises 484,550 rows of fli
 - **Data Splitting**: The data was divided into two subsets:  
   - 50% for training  
   - 50% for testing  
-  This ensured unbiased model evaluation.  
+  This ensured unbiased model evaluation.
+
+```python
+# Load the full dataset
+df = pd.read_csv("Flight_delay.csv")
+
+# Shuffle the dataset
+df_shuffled = df.sample(frac=1, random_state=42)  # random_state for reproducibility
+
+# Split into two halves
+train_data = df_shuffled[:len(df_shuffled)//2]  # First half for training
+validation_data = df_shuffled[len(df_shuffled)//2:]  # Second half for validation
+```
+
+
+Below is a photo showing the data columns:
+![Image description](data_prepo.png)
+
+## Validation steps include:
+### 1. Filtering relevant columns
+### 2. Checking for missing data
+### 3. Analyzing distributions, etc.
+
+### Example: Checking data types and head of the validation set
+print(validation_data.head())
+print(validation_data.dtypes) 
 
 #### Exploratory Data Analysis (EDA)  
 To understand relationships between variables and identify factors influencing flight delays, the following analyses were performed:  
@@ -180,7 +205,7 @@ Testing data was used to evaluate the model's performance under real-world condi
 
 #### Figure 4: KDE, CDF Comparison of Real vs Simulated Delays  
   
-![Correlation Heatmap](images/cdf_kdf.png)
+![Image description](cdf_kdf.png)
  
 This plot compares the **KDE** of real data (blue) and simulated data (orange), showing how well the simulated delays follow the distribution of the real data.  
 This **CDF comparison** shows the cumulative probability of delays, with real (blue) and simulated (orange) data closely aligned, validating the model’s replication of flight delays.  
@@ -188,11 +213,11 @@ This **CDF comparison** shows the cumulative probability of delays, with real (b
 
 
 #### Figure 6: KDE Comparison of Real vs Simulated Delays  
-![KDE Comparison](images/kde_comparison_v2.png)  
+![Image description](kde_compare.png)  
 Figure 6 shows a detailed comparison of the **KDE** between real and simulated data. The overlap indicates a good match between the distributions.  
 
 #### Figure 7: CDF Comparison of Real vs Simulated Delays  
-![CDF Comparison](images/cdf_comparison_v2.png)  
+![Image description](cdf_compare.png)  
 Figure 7 validates the model by comparing the cumulative probability of delays for both the real and simulated datasets, reinforcing the model’s accuracy.  
 
 ---
