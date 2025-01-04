@@ -102,4 +102,99 @@ To understand relationships between variables and identify factors influencing f
 
 The heatmap below visualizes the relationships between key features. Darker colors indicate stronger correlations, emphasizing the role of `DepDelay` in predicting delay scenarios.  
 
-![Correlation Heatmap](images/correlation_heatmap.png "Figure 3: Correlation Heatmap")
+![Correlation Heatmap](correlation.png "Figure 3: Correlation Heatmap")
+
+
+## 2.2 Formulate and Develop the Model  
+
+The simulation framework was designed using a **Discrete Event Simulation (DES)** approach, augmented with **Monte Carlo Simulation** to capture the stochastic nature of flight operations.  
+
+### Key Components of the Model  
+
+#### 1. Event Definition  
+- Flights arrive sequentially at the airport, requesting access to gates and runways.  
+- Events are driven by resource availability, with delays modeled as stochastic variables.  
+
+#### 2. Stochastic Delay Modeling  
+- **Gate Delays:**  
+  Modeled using a log-normal distribution fitted to the training data to represent variability in boarding times.  
+- **Runway Delays:**  
+  Modeled using a Pareto distribution to reflect the right-skewed nature of runway clearance times.  
+- **Monte Carlo Simulation:**  
+  Used to sample from these distributions, introducing realistic variability into the simulation.  
+
+#### 3. Resource Allocation  
+- The model includes:  
+  - **10 Gates**: Representing the boarding and deboarding processes.  
+  - **3 Runways**: Representing take-off operations.  
+- Flights must request and hold these resources until their respective operations are completed.  
+
+#### 4. Event Flow  
+- Flights progress through the following sequential stages:  
+  1. **Gate Assignment**  
+  2. **Boarding Delay**  
+  3. **Runway Assignment**  
+  4. **Take-Off**  
+- The simulation environment is managed using **SimPy**, which handles resource contention and event scheduling efficiently.  
+
+#### 5. Simulation Execution  
+- The simulation runs for a defined period, processing **20 flights** at regular intervals governed by **exponential interarrival times**.  
+
+### Model Highlights  
+By integrating discrete event simulation with Monte Carlo techniques, this model captures the inherent variability and complexity of flight operations, providing a robust framework for analyzing and optimizing departure delays.  
+
+## 2.3 Validate and Document the Model  
+
+### Validation Overview  
+The model validation ensures that the simulation replicates real-world flight departure dynamics. The validation process involved several steps to confirm the accuracy of the simulation outputs.  
+
+#### 1. Distribution Fitting  
+Real-world departure delay data was fitted to **log-normal** and **Pareto** distributions using statistical methods. The fitted parameters were then used to generate synthetic delays during the simulation.  
+
+#### 2. KDE and CDF Comparison  
+The **Kernel Density Estimate (KDE)** and **Cumulative Distribution Function (CDF)** of simulated delays were compared with those of the test dataset.  
+
+**KDE Comparison:**  
+- The blue line represents the **real data** (departure delays) and the orange line represents the **simulated data**.  
+- Figure 4 shows the KDE comparison, where the simulated delays generally match the real data, though there are notable differences in the spread of data.  
+
+**CDF Comparison:**  
+- The cumulative probability of delays is illustrated in **Figure 5**, comparing the real (blue) and simulated (orange) data. The comparison indicates a good alignment for short to moderate delays (0 to 100 minutes), but some deviation occurs for longer delays (100 to 200 minutes).  
+
+**Key Insights from the Comparison:**  
+1. **Sharp Peak in Real Data (KDE):**  
+   - The real data shows a **sharp peak around 0 to 50 minutes**, indicating most real-world flights experience moderate delays. This suggests that delay patterns are skewed, with a concentration near smaller delays.  
+   
+2. **Broader Peak in Simulated Data (KDE):**  
+   - The simulated data has a **broader and less sharp peak** in the same range, implying higher variance and a more spread-out distribution compared to real data.  
+
+3. **CDF Range Observations:**  
+   - **Up to 100 Minutes:** The **blue** and **orange** lines are close, indicating the model captures short to moderate delays well.  
+   - **100 to 200 Minutes:** A noticeable deviation between the two lines, suggesting some inaccuracy in simulating delays in this range.  
+   - **Beyond 200 Minutes:** The deviation increases further, indicating the simulation model fails to capture the longer delays that occur less frequently in the real data.  
+
+#### 3. Cross-Validation  
+Testing data was used to evaluate the model's performance under real-world conditions. This cross-validation ensured that the simulation's outputs were consistent with observed behavior.  
+
+### Visual Comparisons:  
+
+#### Figure 4: KDE, CDF Comparison of Real vs Simulated Delays  
+  
+![Correlation Heatmap](images/cdf_kdf.png)
+ 
+This plot compares the **KDE** of real data (blue) and simulated data (orange), showing how well the simulated delays follow the distribution of the real data.  
+This **CDF comparison** shows the cumulative probability of delays, with real (blue) and simulated (orange) data closely aligned, validating the model’s replication of flight delays.  
+
+
+
+#### Figure 6: KDE Comparison of Real vs Simulated Delays  
+![KDE Comparison](images/kde_comparison_v2.png)  
+Figure 6 shows a detailed comparison of the **KDE** between real and simulated data. The overlap indicates a good match between the distributions.  
+
+#### Figure 7: CDF Comparison of Real vs Simulated Delays  
+![CDF Comparison](images/cdf_comparison_v2.png)  
+Figure 7 validates the model by comparing the cumulative probability of delays for both the real and simulated datasets, reinforcing the model’s accuracy.  
+
+---
+By comparing these plots and analyses, it’s clear that the simulation model closely replicates real-world flight delay behavior, with areas for improvement in simulating the tail end of delay distributions.
+
