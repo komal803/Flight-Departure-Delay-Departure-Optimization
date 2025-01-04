@@ -118,7 +118,8 @@ To understand relationships between variables and identify factors influencing f
    - **Distributions Applied**: Log-normal and Pareto distributions were fitted to capture the stochastic nature of delays, effectively reflecting real-world patterns.  
 
 #### Documentation and Visualization  
-- **Correlation Heatmap** (*Figure 3*):  
+- **Correlation Heatmap** :
+![Image description](heatmap.png)  
   Visualizes feature relationships, with darker colors indicating stronger correlations. This emphasizes the role of *DepDelay* in predicting delay scenarios.  
 - **Pre-Processing Rationale**:  
   Shuffling and data splitting ensured realistic, generalizable representation of the problem and eliminated dataset biases.  
@@ -138,13 +139,49 @@ The simulation framework was designed using a **Discrete Event Simulation (DES)*
 
 #### 1. Event Definition  
 - Flights arrive sequentially at the airport, requesting access to gates and runways.  
-- Events are driven by resource availability, with delays modeled as stochastic variables.  
+- Events are driven by resource availability, with delays modeled as stochastic variables.
+- Below is the visualization of taxi time out.
+  ![Image description](taxi_timeout.png) 
+ 
 
 #### 2. Stochastic Delay Modeling  
 - **Gate Delays:**  
   Modeled using a log-normal distribution fitted to the training data to represent variability in boarding times.  
 - **Runway Delays:**  
-  Modeled using a Pareto distribution to reflect the right-skewed nature of runway clearance times.  
+  Modeled using a Pareto distribution to reflect the right-skewed nature of runway clearance times.
+  Below is the output photo showing the Arrival Delay and Departure Delay.
+
+```python
+  # pip install simpy
+import matplotlib.pyplot as plt
+
+# Assuming 'df_shuffled' is your DataFrame
+DepDelay_counts = train_data['DepDelay'].value_counts()
+ArrDelay_counts = train_data['ArrDelay'].value_counts()
+
+# Plot for Departure Delay
+plt.figure(figsize=(8, 6))
+plt.bar(DepDelay_counts.index, DepDelay_counts, color='blue', alpha=0.7)
+plt.title('Count of Departure Delay')
+plt.xlabel('Departure Delay (minutes)')
+plt.ylabel('Count')
+plt.xlim(0, 300)  # Set x-axis range to 0-300
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.show()
+
+# Plot for Arrival Delay
+plt.figure(figsize=(8, 6))
+plt.bar(ArrDelay_counts.index, ArrDelay_counts, color='green', alpha=0.7)
+plt.title('Count of Arrival Delay')
+plt.xlabel('Arrival Delay (minutes)')
+plt.ylabel('Count')
+plt.xlim(0, 300)  # Set x-axis range to 0-300
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.show()
+```
+  ![Image description](arrival_delay.png)
+  ![Image description](depdelay.png)  
+
 - **Monte Carlo Simulation:**  
   Used to sample from these distributions, introducing realistic variability into the simulation.  
 
@@ -222,4 +259,51 @@ Figure 7 validates the model by comparing the cumulative probability of delays f
 
 ---
 By comparing these plots and analyses, it’s clear that the simulation model closely replicates real-world flight delay behavior, with areas for improvement in simulating the tail end of delay distributions.
+### 3. Results & Analysis
 
+#### 3.1 Select Study Design and Conditions
+
+The study design for this project focused on modelling the flight departure process at a typical airport using discrete event simulation combined with Monte Carlo methods. The model aimed to replicate the stochastic nature of delays in flight operations, encompassing factors such as gate assignment, boarding times, runway access, and departure sequences.
+```python
+# Initialize simulation environment
+env = simpy.Environment()
+# Define resources: gates and runways
+num_gates = 10
+num_runways = 3
+gates = simpy.Resource(env, capacity=num_gates)
+runways = simpy.Resource(env, capacity=num_runways)
+# Define process for a flight
+def flight_process(env, flight_id, gate, runway):
+    print(f"Flight {flight_id} arrives at {env.now} minutes")
+    
+    # Use a gate
+    with gate.request() as request:
+        yield request
+        gate_delay = np.random.lognormal(mean=3, sigma=1)  # Log-normal delay for boarding
+        print(f"Flight {flight_id} starts boarding at {env.now} minutes")
+        yield env.timeout(gate_delay)  # Simulates boarding time
+    
+    # Use a runway
+    with runway.request() as request:
+        yield request
+        runway_delay = np.random.pareto(a=2) * 10  # Pareto delay for runway clearance
+        print(f"Flight {flight_id} starts takeoff at {env.now} minutes")
+        yield env.timeout(runway_delay)  # Simulates takeoff time
+    
+    print(f"Flight {flight_id} departs at {env.now} minutes")
+# Schedule multiple flights
+def flight_scheduler(env, num_flights, gate, runway):
+    for i in range(num_flights):
+        env.process(flight_process(env, f"F{i}", gate, runway))
+        interarrival_time = np.random.exponential(scale=10)  # Random time between arrivals
+        yield env.timeout(interarrival_time)
+
+# Initialize simulation
+num_flights = 20
+env.process(flight_scheduler(env, num_flights, gates, runways))
+env.run(until=500)  # Run simulation for 500 minutes
+```
+  ![Image description](code_run.png) 
+
+Below is a photo showing the difference between the initial and after conditions.
+![Image description](result.png)  
